@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>E-ink Box</title>
+    <link rel="stylesheet" href="/static/css/eink.css" />
+  </head>
+  <body class="index-page">
+    <main id="app">
+      <div class="header-row">
+        <h1>E-ink Box</h1>
+        <button id="theme-toggle" class="theme-toggle-btn" type="button">切换模式</button>
+      </div>
+      <p>局域网电子书阅读与管理器</p>
+      <div class="search-row" aria-label="文件搜索">
+        <input id="search-input" type="search" placeholder="搜索书名（支持中文）" autocomplete="off" />
+        <button id="search-btn" class="theme-toggle-btn" type="button">搜索</button>
+        <button id="search-clear-btn" class="theme-toggle-btn" type="button">清除</button>
+      </div>
+      <section aria-label="文件树">
+        <div id="tree-root"></div>
+      </section>
+    </main>
+    <script src="/static/js/main.js"></script>
+  </body>
+</html>

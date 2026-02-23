@@ -1,0 +1,13 @@
+services:
+  eink-box:
+    build: .
+    container_name: eink-box
+    environment:
+      - STORAGE_PATH=/storage
+    volumes:
+      - ./books:/storage
+    # 若出现权限问题，可启用下一行
+    # user: "1000:1000"
+    ports:
+      - "2004:8000"
+    restart: unless-stopped

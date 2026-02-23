@@ -1,0 +1,454 @@
+:root {
+  --bg-color: #ffffff;
+  --text-color: #000000;
+  --border-color: #000000;
+  --accent-color: #000000;
+  --dyn-font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --dyn-font-size: 1.15rem;
+  --dyn-line-height: 1.75;
+  --dyn-padding: 1rem;
+  --dyn-text-align: justify;
+}
+
+body.theme-eink {
+  --bg-color: #ffffff;
+  --text-color: #111111;
+  --border-color: #000000;
+  --accent-color: #111111;
+}
+
+body.theme-oled-night {
+  --bg-color: #000000;
+  --text-color: #b0b0b0;
+  --border-color: #2d2d2d;
+  --accent-color: #ffb300;
+}
+
+body.theme-oled-smooth {
+  --bg-color: #1a1a1a;
+  --text-color: #d1d1d1;
+  --border-color: #3e3e3e;
+  --accent-color: #d1d1d1;
+}
+
+body.theme-paper-day,
+body.theme-lcd {
+  --bg-color: #f4ecd8;
+  --text-color: #333333;
+  --border-color: #b9ab88;
+  --accent-color: #5d4a1d;
+}
+
+* {
+  box-sizing: border-box;
+  transition: none !important;
+  animation: none !important;
+  scroll-behavior: auto !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+body.theme-oled-night,
+body.theme-oled-night *,
+body.theme-oled-smooth,
+body.theme-oled-smooth *,
+body.theme-paper-day,
+body.theme-paper-day *,
+body.theme-lcd,
+body.theme-lcd * {
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s !important;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg-color);
+  color: var(--text-color);
+  font-family: var(--dyn-font-family);
+}
+
+a,
+a:visited {
+  color: var(--accent-color);
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+  color: var(--accent-color);
+}
+
+.index-page {
+  overflow: auto;
+}
+
+#app {
+  min-height: 100%;
+  padding: 1rem;
+}
+
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.search-row {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0.7rem 0 1rem;
+  flex-wrap: wrap;
+}
+
+#search-input {
+  flex: 1 1 14rem;
+  min-width: 12rem;
+  border: 1px solid var(--border-color);
+  background: var(--bg-color);
+  color: var(--text-color);
+  padding: 0.4rem 0.55rem;
+  font: inherit;
+}
+
+#tree-root {
+  border: 2px solid var(--border-color);
+  padding: 1rem;
+  background: var(--bg-color);
+}
+
+.file-tree {
+  list-style: none;
+  margin: 0;
+  padding-left: 0.9rem;
+}
+
+.file-node {
+  margin: 0.35rem 0;
+}
+
+.file-directory {
+  margin: 0.2rem 0;
+  padding-left: 0.45rem;
+  border-left: 1px dashed var(--border-color);
+}
+
+.dir-summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  padding: 0.1rem 0;
+}
+
+.dir-summary::-webkit-details-marker {
+  display: none;
+}
+
+.dir-summary::marker {
+  content: "";
+}
+
+.dir-summary::before {
+  content: "▸";
+  font-size: 0.86rem;
+  width: 0.9rem;
+  display: inline-block;
+}
+
+.file-directory[open] > .dir-summary::before {
+  content: "▾";
+}
+
+.file-children {
+  margin: 0.2rem 0 0.1rem;
+  padding-left: 1rem;
+}
+
+.file-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.node-icon {
+  flex: 0 0 auto;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.dir-label {
+  font-weight: 700;
+}
+
+.dir-count {
+  font-size: 0.84rem;
+  opacity: 0.8;
+}
+
+.file-link {
+  border: 1px solid var(--accent-color);
+  padding: 0.2rem 0.5rem;
+  background: var(--bg-color);
+}
+
+.file-path {
+  font-size: 0.82rem;
+  opacity: 0.74;
+  word-break: break-all;
+}
+
+.delete-button {
+  border: 2px solid var(--border-color);
+  background: var(--bg-color);
+  color: var(--accent-color);
+  font-size: 1.2rem;
+  font-weight: 700;
+  padding: 0.35rem 0.75rem;
+  cursor: pointer;
+}
+
+.message-box {
+  border: 2px solid var(--border-color);
+  padding: 0.75rem;
+  background: var(--bg-color);
+}
+
+.reader-page {
+  overflow: hidden;
+}
+
+#reader-root {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg-color);
+  color: var(--text-color);
+}
+
+#reader-stage {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg-color);
+  color: var(--text-color);
+}
+
+#txt-content {
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+  padding: 0.8rem var(--dyn-padding) 4.5rem var(--dyn-padding);
+  overflow: hidden;
+  white-space: pre-wrap;
+  font-family: var(--dyn-font-family);
+  font-size: var(--dyn-font-size);
+  line-height: var(--dyn-line-height);
+  text-align: var(--dyn-text-align);
+  column-width: calc(100vw - (var(--dyn-padding) * 2));
+  column-gap: 0;
+  column-fill: auto;
+  background: var(--bg-color);
+  color: var(--text-color);
+}
+
+.text-chunk {
+  white-space: pre-wrap;
+  contain: content;
+}
+
+#epub-viewer {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg-color);
+  color: var(--text-color);
+}
+
+#reader-info {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  border-top: 2px solid var(--border-color);
+  background: var(--bg-color);
+  color: var(--text-color);
+  padding: 0.25rem 0.5rem;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+#reader-info-text {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#reader-info-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+#reader-progress {
+  border: 1px solid var(--border-color);
+  padding: 0.18rem 0.45rem;
+  min-width: 4.8rem;
+  text-align: center;
+  font-size: 0.88rem;
+}
+
+#toc-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 36;
+  width: min(86vw, 22rem);
+  height: calc(100vh - 2.2rem);
+  border-right: 2px solid var(--border-color);
+  border-bottom: 2px solid var(--border-color);
+  background: var(--bg-color);
+  color: var(--text-color);
+  overflow: auto;
+}
+
+#toc-title {
+  position: sticky;
+  top: 0;
+  border-bottom: 2px solid var(--border-color);
+  background: var(--bg-color);
+  color: var(--text-color);
+  padding: 0.55rem 0.7rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+#toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0.4rem;
+}
+
+.toc-item {
+  margin: 0.2rem 0;
+}
+
+.toc-link {
+  width: 100%;
+  border: 1px solid var(--border-color);
+  background: var(--bg-color);
+  color: var(--accent-color);
+  text-align: left;
+  padding: 0.35rem 0.45rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+#settings-panel {
+  position: fixed;
+  left: 50%;
+  bottom: 2.8rem;
+  transform: translateX(-50%);
+  z-index: 35;
+  width: min(94vw, 760px);
+  border: 2px solid var(--border-color);
+  background: var(--bg-color);
+  color: var(--text-color);
+  padding: 0.55rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.settings-label {
+  min-width: 3.1rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.settings-btn {
+  border: 2px solid var(--border-color);
+  background: var(--bg-color);
+  color: var(--accent-color);
+  padding: 0.18rem 0.6rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.settings-btn.is-active {
+  border-color: var(--accent-color);
+  background: var(--accent-color);
+  color: var(--bg-color);
+}
+
+.settings-value {
+  border: 1px solid var(--border-color);
+  padding: 0.18rem 0.45rem;
+  min-width: 6.6rem;
+  text-align: center;
+  font-size: 0.88rem;
+}
+
+#eink-refresh-btn,
+#clear-cache-btn {
+  width: 100%;
+  text-align: center;
+}
+
+.danger-divider {
+  width: 100%;
+  margin: 0.55rem 0 0.3rem;
+  border: 0;
+  border-top: 2px solid var(--border-color);
+}
+
+.danger-btn {
+  width: 100%;
+  border: 2px dashed #666666;
+  background: var(--text-color);
+  color: var(--bg-color);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.theme-toggle-btn {
+  border: 2px solid var(--border-color);
+  background: var(--bg-color);
+  color: var(--accent-color);
+  padding: 0.3rem 0.8rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.hidden {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+#eink-flash-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: #000000;
+  pointer-events: none;
+}

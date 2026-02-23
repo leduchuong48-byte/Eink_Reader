@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>E-ink Box Reader</title>
+    <link rel="manifest" href="/static/manifest.json" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="stylesheet" href="/static/css/eink.css" />
+  </head>
+  <body class="reader-page">
+    <div id="reader-root">
+      <div id="reader-stage">
+        <pre id="txt-content" class="hidden"></pre>
+        <div id="epub-viewer" class="hidden"></div>
+      </div>
+
+      <aside id="toc-panel" class="hidden" aria-hidden="true">
+        <div id="toc-title">目录</div>
+        <ul id="toc-list"></ul>
+      </aside>
+
+      <div id="settings-panel" class="hidden" aria-hidden="true">
+        <div class="settings-row">
+          <span class="settings-label">字体</span>
+          <button id="layout-font-prev" class="settings-btn" type="button">-</button>
+          <span id="layout-font-value" class="settings-value"></span>
+          <button id="layout-font-next" class="settings-btn" type="button">+</button>
+        </div>
+        <div class="settings-row">
+          <span class="settings-label">字号</span>
+          <button id="layout-font-size-dec" class="settings-btn" type="button">-</button>
+          <span id="layout-font-size-value" class="settings-value"></span>
+          <button id="layout-font-size-inc" class="settings-btn" type="button">+</button>
+        </div>
+        <div class="settings-row">
+          <span class="settings-label">行距</span>
+          <button id="layout-line-height-dec" class="settings-btn" type="button">-</button>
+          <span id="layout-line-height-value" class="settings-value"></span>
+          <button id="layout-line-height-inc" class="settings-btn" type="button">+</button>
+        </div>
+        <div class="settings-row">
+          <span class="settings-label">边距</span>
+          <button id="layout-padding-dec" class="settings-btn" type="button">-</button>
+          <span id="layout-padding-value" class="settings-value"></span>
+          <button id="layout-padding-inc" class="settings-btn" type="button">+</button>
+        </div>
+        <div class="settings-row">
+          <span class="settings-label">对齐</span>
+          <button id="layout-align-justify" class="settings-btn" type="button">两端</button>
+          <button id="layout-align-left" class="settings-btn" type="button">左对齐</button>
+        </div>
+        <div class="settings-row">
+          <button id="eink-refresh-btn" class="settings-btn" type="button">触发全屏刷新</button>
+        </div>
+        <div class="settings-row">
+          <button id="clear-cache-btn" class="settings-btn" type="button">清除阅读缓存</button>
+        </div>
+        <hr class="danger-divider" />
+        <div class="settings-row">
+          <button id="delete-book-btn" class="settings-btn danger-btn" type="button">删除本书并返回</button>
+        </div>
+      </div>
+
+      <div id="reader-info">
+        <span id="reader-info-text"></span>
+        <div id="reader-info-controls">
+          <span id="reader-progress">--</span>
+          <button id="back-to-shelf-btn" class="theme-toggle-btn" type="button">返回书架</button>
+          <button id="toc-toggle" class="theme-toggle-btn" type="button">目录</button>
+          <button id="theme-toggle" class="theme-toggle-btn" type="button">切换模式</button>
+        </div>
+      </div>
+    </div>
+    <script src="/static/js/epub.min.js"></script>
+    <script src="/static/js/reader.js"></script>
+    <div id="eink-flash-overlay" class="hidden"></div>
+  </body>
+</html>
