@@ -5,7 +5,7 @@ services:
     environment:
       - STORAGE_PATH=/storage
     volumes:
-      - ./books:/storage
+      - /mnt/fnos_nas/不重要资源/阅读app/books:/storage
     # 若出现权限问题，可启用下一行
     # user: "1000:1000"
     ports:

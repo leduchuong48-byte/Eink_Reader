@@ -1,96 +1,100 @@
-# Eink Reader
+# 项目名称
+
+![封面图/演示图](docs/cover.gif)
+
+[![Docker Pulls](https://img.shields.io/badge/Docker%20Pulls-check%20registry-blue.svg)](#)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Build: Passing](https://img.shields.io/badge/Build-Passing-brightgreen.svg)](#)
+[![Platform: ARM64/AMD64](https://img.shields.io/badge/Platform-ARM64%2FAMD64-blue.svg)](#)
 
 [English](README_en.md)
 
-Eink Reader 是一个以 **WebUI 阅读体验** 为核心的局域网电子书阅读器，面向 E-ink 设备和低干扰阅读场景，支持书架管理、TXT/EPUB 阅读、阅读进度持久化与主题/排版控制。
+> Better alternative to legacy-tool for E-ink devices.
+
+一句话说明项目是做什么的。
+
+## Why this tool?（为什么要做它）
+
+厌倦了 <旧方案痛点> 吗？受够了 <卡顿/失败/重复劳动> 吗？这个工具就是为了解决 <关键阻塞场景>，把原本容易翻车的流程压缩成可复现的一步操作。
 
 ## 为什么有用（痛点）
 
-本地电子书管理常见问题：
-
-- 文件分散在 NAS 或目录中，找书与定位章节效率低
-- 手机/平板阅读器在 E-ink 设备上交互不友好
-- 阅读进度与排版偏好难以跨会话持续
-
-Eink Reader 把“发现书籍-打开阅读-保存进度-继续阅读”做成一个持续可用的 Web 流程，减少手工切换和重复配置。
+- 痛点 1：原流程中最耗时/最容易出错的问题
+- 痛点 2：现有方案的成本或维护负担
+- 痛点 3：团队协作或交付效率上的阻塞
 
 ## 项目做什么（功能概览）
 
-- 书架浏览：目录懒加载、分页、关键字搜索
-- 阅读支持：TXT 分块读取与 EPUB 渲染
-- 阅读状态：TXT 偏移量 / EPUB CFI 进度持久化
-- 阅读体验：多主题切换、排版设置、触摸/键盘/点击翻页
-- 文件治理：支持在书架/阅读页删除 `.txt` 与 `.epub`
+- 核心能力 A
+- 核心能力 B
+- 核心能力 C
 
-## WebUI 特色（代码可验证）
+## ⚡️ Quick Start (Run in 3 seconds)
 
-基于 `app/main.py` 与 `static/*`：
+```bash
+docker run --rm -it --pull=always ghcr.io/leduchuong48-byte/eink_reader:latest
+```
 
-- 页面路由：`/`（书架页）、`/read?file=...`（阅读页）
-- 文件 API：`GET /api/files`、`GET /api/search`
-- 内容 API：`GET /api/content/{filepath}`（TXT 分块 + EPUB 文件流）
-- 管理 API：`DELETE /api/files/{filepath}`
+> 发布前必须替换为真实镜像地址，保持“复制即运行”，不要要求读者再改参数。
 
-阅读页提供：
+## Docker Compose（Portainer / NAS 可直接粘贴）
 
-- 目录（TOC）展开与跳转
-- 字号、行距、边距、对齐设置
-- 主题轮换（E-ink / OLED Night / OLED Smooth / Paper Day）
-- 清除阅读缓存与返回书架操作
+```yaml
+services:
+  app:
+    image: ghcr.io/leduchuong48-byte/eink_reader:latest
+    container_name: eink-reader
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Shanghai
+    ports:
+      - "8000:8000"
+```
+
+## GitHub Topics（建议至少 5 个）
+
+`#nas` `#homelab` `#selfhosted` `#synology` `#unraid` `#eink` `#automation`
 
 ## 如何快速开始（Getting Started）
 
 ### 环境要求
 
-- Docker / Docker Compose（推荐）
-- 或 Python 3.12+
+- 语言/运行时版本
+- 依赖与系统要求
 
-### Docker 运行
-
-1. 在项目目录创建书籍目录：`books/`，放入 `.txt` 与 `.epub` 文件。
-2. 启动服务：
+### 安装
 
 ```bash
-docker compose up -d --build
+<install command>
 ```
 
-3. 打开：`http://<你的主机IP>:2004/`
-
-### 本地运行
+### 运行
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-STORAGE_PATH=/你的书籍目录 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+<run command>
 ```
 
-打开：`http://127.0.0.1:8000/`
-
-### 运行测试
+## 使用示例
 
 ```bash
-pytest -q
+<example command>
 ```
-
-## 配置说明
-
-- `STORAGE_PATH`：电子书根目录，默认 `/storage`
-- `docker-compose.yml` 默认挂载：`./books:/storage`
 
 ## 在哪里获得帮助
 
-- Issue：`https://github.com/leduchuong48-byte/Eink_Reader/issues`
-- 建议附带：复现步骤、截图、日志片段、运行环境
+- Issue: `<repo>/issues`
+- Discussion / 文档链接
+- 联系方式（可选）
 
 ## 维护者与贡献者
 
-- Maintainer: `@leduchuong48-byte`
-
-## 许可证
-
-当前仓库未包含 `LICENSE` 文件。如需开源分发，建议补充许可证。
+- Maintainer: @your-name
+- Contributing: [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## 免责声明
 
 使用本项目即表示你已阅读并同意 [免责声明](DISCLAIMER.md)。
+
+## 许可证
+
+例如 MIT，详见 [LICENSE](LICENSE)

@@ -1,19 +1,21 @@
-# Python cache
+
+# github-push defaults
 __pycache__/
 *.py[cod]
-
-# Virtual environment
 .venv/
 venv/
-
-# Test / lint cache
-.pytest_cache/
-.ruff_cache/
-
-# OS/editor
-.DS_Store
-.vscode/
-.idea/
-
-# Runtime book data
-books/
+*.log
+cache_results.jsonl
+run_trace.log
+typing_world.csv
+maimemo_vocabulary.txt
+vocabulary_reading.xlsx
+vocabulary_reading.pdf
+input/
+en_core_web_sm/
+en_core_web_sm-*.dist-info/
+en_core_web_sm-*.whl
+.env
+.env.*
+!.env.example
+llm_settings.local.json

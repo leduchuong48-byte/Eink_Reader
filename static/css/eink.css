@@ -240,19 +240,22 @@ button {
 }
 
 #txt-content {
+  box-sizing: border-box !important;
   margin: 0;
-  width: 100vw;
+  width: 100% !important;
+  max-width: 100vw !important;
   height: 100vh;
-  padding: 0.8rem var(--dyn-padding) 4.5rem var(--dyn-padding);
-  overflow: hidden;
-  white-space: pre-wrap;
+  padding: 0.8rem var(--dyn-padding) 10rem var(--dyn-padding);
+  overflow-x: hidden !important;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  white-space: pre-wrap !important;
+  word-break: break-all !important;
+  overflow-wrap: break-word !important;
   font-family: var(--dyn-font-family);
   font-size: var(--dyn-font-size);
   line-height: var(--dyn-line-height);
   text-align: var(--dyn-text-align);
-  column-width: calc(100vw - (var(--dyn-padding) * 2));
-  column-gap: 0;
-  column-fill: auto;
   background: var(--bg-color);
   color: var(--text-color);
 }

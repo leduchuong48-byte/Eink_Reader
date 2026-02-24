@@ -1,96 +1,100 @@
-# Eink Reader
+# Project Name
+
+![Cover or Demo](docs/cover.gif)
+
+[![Docker Pulls](https://img.shields.io/badge/Docker%20Pulls-check%20registry-blue.svg)](#)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Build: Passing](https://img.shields.io/badge/Build-Passing-brightgreen.svg)](#)
+[![Platform: ARM64/AMD64](https://img.shields.io/badge/Platform-ARM64%2FAMD64-blue.svg)](#)
 
 [中文](README.md)
 
-Eink Reader is a **WebUI-first** LAN ebook reader designed for E-ink and distraction-free reading scenarios. It provides shelf browsing, TXT/EPUB reading, progress persistence, and typography/theme controls in one lightweight web app.
+> Better alternative to legacy-tool for E-ink devices.
+
+One sentence describing what this project does.
+
+## Why this tool?
+
+Tired of <slow workflow> and <manual retries>? This tool is built to remove the 3-second lag and frequent failure points that make demos and operations unreliable.
 
 ## Why This Project Is Useful (Pain Points)
 
-Common problems in local ebook workflows:
-
-- Books are scattered across NAS folders and hard to browse quickly
-- Generic readers are not optimized for E-ink interaction patterns
-- Reading progress and layout preferences are hard to keep consistently
-
-Eink Reader turns discovery, reading, progress tracking, and resume into one continuous web workflow.
+- Pain point 1: The most error-prone or time-consuming part in the old workflow
+- Pain point 2: Cost/maintenance burden of existing solutions
+- Pain point 3: Delivery or collaboration bottlenecks
 
 ## What the Project Does (Features)
 
-- Shelf browsing with lazy directory loading, pagination, and keyword search
-- TXT chunked reading and EPUB rendering
-- Progress persistence (TXT offset / EPUB CFI)
-- Reader UX controls: themes, typography, touch/keyboard/tap page turns
-- File management: delete `.txt` / `.epub` from shelf or reader flow
+- Core capability A
+- Core capability B
+- Core capability C
 
-## WebUI Highlights (Code-Verified)
+## ⚡️ Quick Start (Run in 3 seconds)
 
-Based on `app/main.py` and `static/*`:
+```bash
+docker run --rm -it --pull=always ghcr.io/leduchuong48-byte/eink_reader:latest
+```
 
-- Routes: `/` (shelf), `/read?file=...` (reader)
-- File APIs: `GET /api/files`, `GET /api/search`
-- Content API: `GET /api/content/{filepath}` (TXT chunk + EPUB stream)
-- Management API: `DELETE /api/files/{filepath}`
+> Keep this command copy-paste ready before release; do not require readers to edit parameters.
 
-Reader page includes:
+## Docker Compose (Portainer / NAS ready)
 
-- TOC navigation
-- Font size/line height/padding/alignment controls
-- Theme cycling (E-ink / OLED Night / OLED Smooth / Paper Day)
-- Clear-reading-cache and back-to-shelf actions
+```yaml
+services:
+  app:
+    image: ghcr.io/leduchuong48-byte/eink_reader:latest
+    container_name: eink-reader
+    restart: unless-stopped
+    environment:
+      - TZ=UTC
+    ports:
+      - "8000:8000"
+```
+
+## GitHub Topics (pick at least 5)
+
+`#nas` `#homelab` `#selfhosted` `#synology` `#unraid` `#eink` `#automation`
 
 ## Getting Started
 
-### Requirements
+### Prerequisites
 
-- Docker / Docker Compose (recommended)
-- Or Python 3.12+
+- Runtime/language versions
+- Dependency and system requirements
 
-### Run with Docker
-
-1. Create a local `books/` folder in the project directory and put `.txt` / `.epub` files in it.
-2. Start the app:
+### Installation
 
 ```bash
-docker compose up -d --build
+<install command>
 ```
 
-3. Open: `http://<your-host-ip>:2004/`
-
-### Run Locally
+### Run
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-STORAGE_PATH=/path/to/your/books uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+<run command>
 ```
 
-Open: `http://127.0.0.1:8000/`
-
-### Run Tests
+## Usage Example
 
 ```bash
-pytest -q
+<example command>
 ```
-
-## Configuration
-
-- `STORAGE_PATH`: ebook root directory (default: `/storage`)
-- Default compose mount: `./books:/storage`
 
 ## Where to Get Help
 
-- Issues: `https://github.com/leduchuong48-byte/Eink_Reader/issues`
-- Please include repro steps, screenshots, logs, and environment details
+- Issues: `<repo>/issues`
+- Discussions / docs links
+- Contact (optional)
 
 ## Maintainers and Contributors
 
-- Maintainer: `@leduchuong48-byte`
-
-## License
-
-No `LICENSE` file is currently included. Add one before public open-source distribution.
+- Maintainer: @your-name
+- Contributing: [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## Disclaimer
 
 By using this project, you acknowledge and agree to the [Disclaimer](DISCLAIMER.md).
+
+## License
+
+For example MIT, see [LICENSE](LICENSE)
