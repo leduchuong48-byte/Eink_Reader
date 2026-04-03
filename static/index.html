@@ -2,25 +2,94 @@
 <html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>E-ink Box</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>E-ink Box 2.0</title>
+    <meta name="author" content="leduchuong" />
     <link rel="stylesheet" href="/static/css/eink.css" />
   </head>
   <body class="index-page">
     <main id="app">
       <div class="header-row">
-        <h1>E-ink Box</h1>
-        <button id="theme-toggle" class="theme-toggle-btn" type="button">切换模式</button>
+        <h1>E-ink Box 2.0</h1>
+        <div class="header-actions">
+          <button id="settings-toggle" class="theme-toggle-btn icon-button" type="button" aria-haspopup="dialog" aria-controls="shelf-settings-panel" aria-expanded="false">⚙️</button>
+          <button id="theme-toggle" class="theme-toggle-btn" type="button">切换模式</button>
+        </div>
       </div>
-      <p>局域网电子书阅读与管理器</p>
+      <p>局域网电子书阅读与管理器 · v2.0 · by leduchuong</p>
+      <section id="recent-reading-section" class="recent-reading-section hidden" aria-label="最近阅读">
+        <div class="recent-reading-header">
+          <h2>最近阅读</h2>
+          <button id="recent-reading-clear" class="settings-btn" type="button">全部清除</button>
+        </div>
+        <div id="recent-reading-list" class="recent-reading-list"></div>
+      </section>
       <div class="search-row" aria-label="文件搜索">
         <input id="search-input" type="search" placeholder="搜索书名（支持中文）" autocomplete="off" />
         <button id="search-btn" class="theme-toggle-btn" type="button">搜索</button>
         <button id="search-clear-btn" class="theme-toggle-btn" type="button">清除</button>
       </div>
+      <div id="shelf-settings-backdrop" class="settings-backdrop hidden"></div>
+      <section id="shelf-settings-panel" class="shelf-settings-panel hidden" aria-hidden="true" aria-label="书架设置">
+        <div class="shelf-settings-header">
+          <h2>书籍来源设置</h2>
+          <button id="settings-close" class="theme-toggle-btn" type="button">关闭</button>
+        </div>
+        <div class="settings-row">
+          <span id="webdav-status" class="settings-value settings-feedback">就绪</span>
+        </div>
+        <section class="source-form-section" aria-label="WebDAV 来源编辑">
+          <input id="webdav-source-id" type="hidden" />
+          <div class="settings-form-grid">
+            <label class="settings-field">
+              <span>名称</span>
+              <input id="webdav-name" type="text" placeholder="例如：NAS 书库" />
+            </label>
+            <label class="settings-field">
+              <span>服务器地址</span>
+              <input id="webdav-base-url" type="url" placeholder="https://dav.example.com" />
+            </label>
+            <label class="settings-field">
+              <span>用户名</span>
+              <input id="webdav-username" type="text" autocomplete="username" />
+            </label>
+            <label class="settings-field">
+              <span>密码</span>
+              <input id="webdav-password" type="password" autocomplete="current-password" />
+            </label>
+            <label class="settings-field">
+              <span>远端目录</span>
+              <input id="webdav-remote-path" type="text" placeholder="/books" />
+            </label>
+          </div>
+          <label class="settings-checkbox">
+            <input id="webdav-enabled" type="checkbox" checked />
+            <span>启用此来源</span>
+          </label>
+          <div class="settings-row">
+            <button id="webdav-save-btn" class="settings-btn" type="button">保存来源</button>
+            <button id="webdav-reset-btn" class="settings-btn" type="button">新建来源</button>
+            <button id="webdav-test-btn" class="settings-btn" type="button">测试连接</button>
+          </div>
+        </section>
+        <section aria-label="WebDAV 来源列表">
+          <div id="webdav-sources-empty" class="message-box hidden">尚未配置 WebDAV 来源</div>
+          <div id="webdav-sources-list" class="sources-list"></div>
+        </section>
+      </section>
       <section aria-label="文件树">
         <div id="tree-root"></div>
       </section>
+
+      <div id="theme-modal" class="reader-status-overlay hidden" aria-hidden="true">
+        <div class="reader-status-card" role="dialog" aria-modal="true" aria-label="选择书架主题">
+          <div class="reader-status-title">选择书架主题</div>
+          <div id="theme-modal-options" class="reader-status-actions"></div>
+          <div class="reader-status-actions">
+            <button id="theme-modal-close" class="settings-btn" type="button">取消</button>
+          </div>
+        </div>
+      </div>
     </main>
     <script src="/static/js/main.js"></script>
   </body>

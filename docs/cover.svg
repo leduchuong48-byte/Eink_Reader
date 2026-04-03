@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" fill="none">
+  <rect width="1280" height="720" fill="#f3efe3"/>
+  <rect x="56" y="56" width="1168" height="608" rx="32" fill="#fffdf7" stroke="#1f1f1f" stroke-width="4"/>
+  <rect x="98" y="108" width="420" height="504" rx="24" fill="#f7f3e7" stroke="#1f1f1f" stroke-width="4"/>
+  <rect x="128" y="148" width="260" height="24" rx="12" fill="#1f1f1f"/>
+  <rect x="128" y="196" width="328" height="12" rx="6" fill="#76706a"/>
+  <rect x="128" y="232" width="292" height="12" rx="6" fill="#76706a"/>
+  <rect x="128" y="268" width="310" height="12" rx="6" fill="#76706a"/>
+  <rect x="128" y="322" width="160" height="160" rx="18" fill="#ece6d7" stroke="#1f1f1f" stroke-width="4"/>
+  <path d="M184 356h48c12 0 22 10 22 22v68c0 12-10 22-22 22h-48c-12 0-22-10-22-22v-68c0-12 10-22 22-22Z" fill="#fffdf7" stroke="#1f1f1f" stroke-width="4"/>
+  <path d="M214 378v68" stroke="#1f1f1f" stroke-width="4" stroke-linecap="round"/>
+  <path d="M176 390h76" stroke="#1f1f1f" stroke-width="4" stroke-linecap="round"/>
+  <rect x="312" y="322" width="144" height="20" rx="10" fill="#1f1f1f"/>
+  <rect x="312" y="362" width="120" height="12" rx="6" fill="#76706a"/>
+  <rect x="312" y="392" width="132" height="12" rx="6" fill="#76706a"/>
+  <rect x="312" y="422" width="116" height="12" rx="6" fill="#76706a"/>
+  <rect x="574" y="108" width="608" height="236" rx="28" fill="#1f1f1f"/>
+  <text x="620" y="184" fill="#fffdf7" font-family="Georgia, serif" font-size="52" font-weight="700">E-ink Box 2.0</text>
+  <text x="620" y="242" fill="#d9d3c7" font-family="Arial, sans-serif" font-size="28">Self-hosted reader for TXT / EPUB / PDF</text>
+  <text x="620" y="286" fill="#d9d3c7" font-family="Arial, sans-serif" font-size="28">Built for NAS, LAN libraries, phones and E-ink devices</text>
+  <rect x="574" y="388" width="284" height="224" rx="24" fill="#ece6d7" stroke="#1f1f1f" stroke-width="4"/>
+  <rect x="606" y="426" width="164" height="18" rx="9" fill="#1f1f1f"/>
+  <rect x="606" y="462" width="210" height="12" rx="6" fill="#76706a"/>
+  <rect x="606" y="494" width="182" height="12" rx="6" fill="#76706a"/>
+  <rect x="606" y="534" width="96" height="40" rx="20" fill="#1f1f1f"/>
+  <text x="633" y="560" fill="#fffdf7" font-family="Arial, sans-serif" font-size="22" font-weight="700">TXT</text>
+  <rect x="898" y="388" width="284" height="224" rx="24" fill="#ece6d7" stroke="#1f1f1f" stroke-width="4"/>
+  <rect x="930" y="426" width="164" height="18" rx="9" fill="#1f1f1f"/>
+  <rect x="930" y="462" width="210" height="12" rx="6" fill="#76706a"/>
+  <rect x="930" y="494" width="182" height="12" rx="6" fill="#76706a"/>
+  <rect x="930" y="534" width="96" height="40" rx="20" fill="#1f1f1f"/>
+  <text x="954" y="560" fill="#fffdf7" font-family="Arial, sans-serif" font-size="22" font-weight="700">PDF</text>
+</svg>

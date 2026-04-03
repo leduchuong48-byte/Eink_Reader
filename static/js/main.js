@@ -15,9 +15,15 @@ const THEME_LABELS = {
 
 const treeRoot = document.getElementById("tree-root");
 const themeToggleButton = document.getElementById("theme-toggle");
+const themeModal = document.getElementById("theme-modal");
+const themeModalOptions = document.getElementById("theme-modal-options");
+const themeModalClose = document.getElementById("theme-modal-close");
 const searchInput = document.getElementById("search-input");
 const searchButton = document.getElementById("search-btn");
 const searchClearButton = document.getElementById("search-clear-btn");
+const recentReadingSection = document.getElementById("recent-reading-section");
+const recentReadingList = document.getElementById("recent-reading-list");
+const recentReadingClearButton = document.getElementById("recent-reading-clear");
 const directoryCache = new Map();
 const directoryInFlight = new Map();
 const DIRECTORY_CACHE_TTL_MS = 10000;
@@ -62,8 +68,41 @@ function syncThemeToggleButton(theme) {
   }
 
   const normalized = normalizeTheme(theme);
-  const next = nextTheme(normalized);
-  themeToggleButton.textContent = `主题：${THEME_LABELS[normalized]} · 切换到 ${THEME_LABELS[next]}`;
+  themeToggleButton.textContent = "模式";
+  themeToggleButton.setAttribute("aria-label", `当前主题：${THEME_LABELS[normalized]}，点击选择模式`);
+  themeToggleButton.title = `当前主题：${THEME_LABELS[normalized]}`;
+}
+
+function closeThemeModal() {
+  if (!themeModal) {
+    return;
+  }
+  themeModal.classList.add("hidden");
+  themeModal.setAttribute("aria-hidden", "true");
+}
+
+function openThemeModal() {
+  if (!themeModal || !themeModalOptions) {
+    return;
+  }
+
+  themeModalOptions.replaceChildren();
+  const activeTheme = currentTheme();
+
+  THEME_SEQUENCE.forEach((theme) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = `settings-btn${theme === activeTheme ? " is-selected" : ""}`;
+    btn.textContent = theme === activeTheme ? `${THEME_LABELS[theme]} (当前)` : THEME_LABELS[theme];
+    btn.addEventListener("click", () => {
+      applyTheme(theme);
+      closeThemeModal();
+    });
+    themeModalOptions.appendChild(btn);
+  });
+
+  themeModal.classList.remove("hidden");
+  themeModal.setAttribute("aria-hidden", "false");
 }
 
 function applyTheme(theme) {
@@ -75,14 +114,29 @@ function applyTheme(theme) {
 }
 
 function toggleTheme() {
-  applyTheme(nextTheme(currentTheme()));
+  openThemeModal();
 }
 
 function initThemeManager() {
   applyTheme(readTheme());
 
   if (themeToggleButton) {
-    themeToggleButton.addEventListener("click", toggleTheme);
+    themeToggleButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      toggleTheme();
+    });
+  }
+
+  if (themeModalClose) {
+    themeModalClose.addEventListener("click", closeThemeModal);
+  }
+
+  if (themeModal) {
+    themeModal.addEventListener("click", (event) => {
+      if (event.target === themeModal) {
+        closeThemeModal();
+      }
+    });
   }
 }
 
@@ -91,6 +145,38 @@ function encodePathForApi(path) {
     .split("/")
     .map((segment) => encodeURIComponent(segment))
     .join("/");
+}
+
+function isWebDavPath(path) {
+  return typeof path === "string" && path.startsWith("webdav://");
+}
+
+function isWebDavSourceRoot(path) {
+  if (!isWebDavPath(path)) {
+    return false;
+  }
+  const withoutPrefix = path.slice("webdav://".length);
+  return !withoutPrefix.includes("/");
+}
+
+function encodeWebDavPathForApi(path) {
+  const prefix = "webdav://";
+  if (!isWebDavPath(path)) {
+    return encodePathForApi(path);
+  }
+
+  const withoutPrefix = path.slice(prefix.length);
+  const slashIndex = withoutPrefix.indexOf("/");
+  if (slashIndex === -1) {
+    return prefix + encodeURIComponent(withoutPrefix);
+  }
+  const sourceId = withoutPrefix.slice(0, slashIndex);
+  const remaining = withoutPrefix.slice(slashIndex + 1);
+  const encodedRemaining = remaining
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+  return `${prefix}${sourceId}/${encodedRemaining}`;
 }
 
 function showMessage(message) {
@@ -102,6 +188,107 @@ function showMessage(message) {
   box.className = "message-box";
   box.textContent = message;
   treeRoot.replaceChildren(box);
+}
+
+function formatRecentReadingMeta(item) {
+  const progress = item.progress || {};
+  if (progress.type === "txt" && Number.isFinite(progress.page)) {
+    return `TXT · 第 ${progress.page} 页`;
+  }
+  if (progress.type === "pdf" && Number.isFinite(progress.page)) {
+    return `PDF · 第 ${progress.page} 页`;
+  }
+  if (progress.type === "epub") {
+    return "EPUB · 继续阅读";
+  }
+  return item.file_type ? item.file_type.toUpperCase() : "继续阅读";
+}
+
+async function loadRecentHistory() {
+  if (!recentReadingSection || !recentReadingList) {
+    return;
+  }
+
+  try {
+    const response = await fetch("/api/reading-history/recent?limit=6");
+    if (!response.ok) {
+      throw new Error(await extractApiError(response));
+    }
+    const payload = await response.json();
+    const items = Array.isArray(payload.items) ? payload.items : [];
+    recentReadingList.replaceChildren();
+    if (!items.length) {
+      recentReadingSection.classList.add("hidden");
+      return;
+    }
+
+    items.forEach((item) => {
+      const card = document.createElement("div");
+      card.className = "recent-reading-card";
+
+      const row = document.createElement("div");
+      row.className = "recent-reading-card-row";
+
+      const link = document.createElement("a");
+      link.href = `/read?file=${encodeURIComponent(item.filepath)}`;
+      link.className = "recent-reading-title";
+
+      const title = document.createElement("div");
+      title.textContent = item.title || item.filepath;
+      link.appendChild(title);
+
+      const removeButton = document.createElement("button");
+      removeButton.type = "button";
+      removeButton.className = "recent-reading-remove";
+      removeButton.textContent = "×";
+      removeButton.title = `清除此书阅读记录：${item.title || item.filepath}`;
+      removeButton.addEventListener("click", async (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (!window.confirm(`确认清除此书的阅读记录：${item.title || item.filepath}？`)) {
+          return;
+        }
+        try {
+          const apiPath = isWebDavPath(item.filepath)
+            ? encodeWebDavPathForApi(item.filepath)
+            : encodePathForApi(item.filepath);
+          const response = await fetch(`/api/reading-history/${apiPath}`, { method: "DELETE" });
+          if (!response.ok) {
+            throw new Error(await extractApiError(response));
+          }
+          void loadRecentHistory();
+        } catch (error) {
+          showMessage(`清除阅读记录失败：${error.message}`);
+        }
+      });
+
+      row.append(link, removeButton);
+
+      const meta = document.createElement("div");
+      meta.className = "recent-reading-meta";
+      meta.textContent = formatRecentReadingMeta(item);
+
+      card.append(row, meta);
+      recentReadingList.appendChild(card);
+    });
+
+    recentReadingSection.classList.remove("hidden");
+  } catch (_) {
+    recentReadingSection.classList.add("hidden");
+  }
+}
+
+async function extractApiError(response) {
+  let detail = "";
+  try {
+    const payload = await response.json();
+    if (payload && typeof payload.detail === "string") {
+      detail = payload.detail.trim();
+    }
+  } catch (_) {
+    // ignore parse failures
+  }
+  return detail || `HTTP ${response.status}`;
 }
 
 function readShelfState() {
@@ -205,7 +392,7 @@ function createDirectoryNode(node) {
 
   const icon = document.createElement("span");
   icon.className = "node-icon dir-icon";
-  icon.textContent = "📂";
+  icon.textContent = isWebDavPath(node.path) ? "☁️" : "📂";
 
   const label = document.createElement("span");
   label.className = "dir-label";
@@ -216,6 +403,7 @@ function createDirectoryNode(node) {
   count.textContent = "(...)";
 
   summary.append(icon, label, count);
+  addDirectoryDeleteButton(summary, node);
 
   const childList = document.createElement("ul");
   childList.className = "file-tree file-children";
@@ -318,15 +506,43 @@ function createFileNode(node) {
 
   const icon = document.createElement("span");
   icon.className = "node-icon file-icon";
-  icon.textContent = "📄";
+  icon.textContent = isWebDavPath(node.path) ? "☁️" : "📄";
   row.appendChild(icon);
 
   const fileLink = document.createElement("a");
   fileLink.className = "file-link";
   fileLink.href = `/read?file=${encodeURIComponent(node.path)}`;
   fileLink.textContent = node.name;
+
+  let preloadStarted = false;
+  const triggerPreload = async () => {
+    if (preloadStarted) {
+      return;
+    }
+    preloadStarted = true;
+    try {
+      const apiPath = isWebDavPath(node.path)
+        ? encodeWebDavPathForApi(node.path)
+        : encodePathForApi(node.path);
+      await fetch(`/api/preload/${apiPath}`, { method: "POST" });
+    } catch (_) {
+      // ignore preload failures
+    }
+  };
+
+  fileLink.addEventListener("mouseenter", () => {
+    void triggerPreload();
+  });
+  fileLink.addEventListener(
+    "touchstart",
+    () => {
+      void triggerPreload();
+    },
+    { passive: true }
+  );
   fileLink.addEventListener("click", () => {
     writeShelfState();
+    void triggerPreload();
   });
   row.appendChild(fileLink);
 
@@ -338,32 +554,35 @@ function createFileNode(node) {
   const deleteBtn = document.createElement("button");
   deleteBtn.type = "button";
   deleteBtn.className = "delete-button";
-  deleteBtn.textContent = "[删除]";
+  deleteBtn.textContent = "×";
+  deleteBtn.setAttribute("aria-label", `删除文件 ${node.name}`);
+  deleteBtn.title = `删除文件：${node.name}`;
   deleteBtn.addEventListener("click", async () => {
-    const confirmed = window.confirm(`确认删除文件：${node.path} ？`);
-    if (!confirmed) {
-      return;
-    }
+    const isWebdav = isWebDavPath(node.path);
+    const confirmMsg = isWebdav
+      ? `确认从 WebDAV 服务器删除文件：${node.name} ？`
+      : `确认删除文件：${node.path} ？`;
+    if (!window.confirm(confirmMsg)) return;
+
+    const apiPath = isWebdav
+      ? encodeWebDavPathForApi(node.path)
+      : encodePathForApi(node.path);
 
     try {
-      const response = await fetch(`/api/files/${encodePathForApi(node.path)}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(`/api/files/${apiPath}`, { method: "DELETE" });
 
       if (!response.ok) {
         let message = "删除失败";
         try {
           const payload = await response.json();
           message = payload.detail || message;
-        } catch (_) {
-          // ignore parsing failure
-        }
+        } catch (_) {}
         throw new Error(message);
       }
 
       li.remove();
       if (treeRoot && !treeRoot.querySelector(".file-node")) {
-        showMessage("未找到 .txt 或 .epub 文件");
+        showMessage("未找到 .txt / .epub / .pdf 文件");
       }
     } catch (error) {
       showMessage(`删除失败：${error.message}`);
@@ -420,7 +639,7 @@ function renderFileTree(payload) {
 
   const items = Array.isArray(payload?.items) ? payload.items : [];
   if (!Array.isArray(items) || items.length === 0) {
-    showMessage("未找到 .txt 或 .epub 文件");
+    showMessage("未找到 .txt / .epub / .pdf 文件");
     return;
   }
 
@@ -478,7 +697,7 @@ async function fetchSearchResults(query) {
   });
   const response = await fetch(`/api/search?${params.toString()}`, { method: "GET" });
   if (!response.ok) {
-    throw new Error(`HTTP ${response.status}`);
+    throw new Error(await extractApiError(response));
   }
 
   const payload = await response.json();
@@ -555,7 +774,7 @@ async function fetchDirectoryPage(path = "", page = 1) {
     const endpoint = `/api/files?${query.toString()}`;
     const response = await fetch(endpoint, { method: "GET" });
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
+      throw new Error(await extractApiError(response));
     }
 
     const payload = await response.json();
@@ -595,9 +814,508 @@ async function loadFiles() {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Settings panel & WebDAV source management
+// ---------------------------------------------------------------------------
+
+const settingsToggle = document.getElementById("settings-toggle");
+const settingsCloseBtn = document.getElementById("settings-close");
+const settingsPanel = document.getElementById("shelf-settings-panel");
+const settingsBackdrop = document.getElementById("shelf-settings-backdrop");
+
+const webdavSourceIdInput = document.getElementById("webdav-source-id");
+const webdavNameInput = document.getElementById("webdav-name");
+const webdavBaseUrlInput = document.getElementById("webdav-base-url");
+const webdavUsernameInput = document.getElementById("webdav-username");
+const webdavPasswordInput = document.getElementById("webdav-password");
+const webdavRemotePathInput = document.getElementById("webdav-remote-path");
+const webdavEnabledInput = document.getElementById("webdav-enabled");
+const webdavSaveBtn = document.getElementById("webdav-save-btn");
+const webdavResetBtn = document.getElementById("webdav-reset-btn");
+const webdavTestBtn = document.getElementById("webdav-test-btn");
+const webdavStatus = document.getElementById("webdav-status");
+const webdavSourcesList = document.getElementById("webdav-sources-list");
+const webdavSourcesEmpty = document.getElementById("webdav-sources-empty");
+
+function openSettingsPanel() {
+  if (!settingsPanel || !settingsBackdrop) return;
+  settingsPanel.classList.remove("hidden");
+  settingsPanel.setAttribute("aria-hidden", "false");
+  settingsBackdrop.classList.remove("hidden");
+  settingsToggle?.setAttribute("aria-expanded", "true");
+  void loadWebDavSources();
+}
+
+function closeSettingsPanel() {
+  if (!settingsPanel || !settingsBackdrop) return;
+  settingsPanel.classList.add("hidden");
+  settingsPanel.setAttribute("aria-hidden", "true");
+  settingsBackdrop.classList.add("hidden");
+  settingsToggle?.setAttribute("aria-expanded", "false");
+}
+
+function resetWebDavForm() {
+  webdavSourceIdInput && (webdavSourceIdInput.value = "");
+  webdavNameInput && (webdavNameInput.value = "");
+  webdavBaseUrlInput && (webdavBaseUrlInput.value = "");
+  webdavUsernameInput && (webdavUsernameInput.value = "");
+  webdavPasswordInput && (webdavPasswordInput.value = "");
+  webdavRemotePathInput && (webdavRemotePathInput.value = "");
+  if (webdavEnabledInput) {
+    webdavEnabledInput.checked = true;
+  }
+}
+
+function fillWebDavForm(source) {
+  webdavSourceIdInput && (webdavSourceIdInput.value = source.id || "");
+  webdavNameInput && (webdavNameInput.value = source.name || "");
+  webdavBaseUrlInput && (webdavBaseUrlInput.value = source.base_url || "");
+  webdavUsernameInput && (webdavUsernameInput.value = source.username || "");
+  webdavPasswordInput && (webdavPasswordInput.value = source.password || "");
+  webdavRemotePathInput && (webdavRemotePathInput.value = source.remote_path || "");
+  if (webdavEnabledInput) {
+    webdavEnabledInput.checked = source.enabled !== false;
+  }
+}
+
+function collectWebDavForm() {
+  return {
+    name: (webdavNameInput?.value || "").trim(),
+    base_url: (webdavBaseUrlInput?.value || "").trim(),
+    username: (webdavUsernameInput?.value || "").trim(),
+    password: webdavPasswordInput?.value || "",
+    remote_path: (webdavRemotePathInput?.value || "").trim(),
+    enabled: webdavEnabledInput?.checked !== false,
+  };
+}
+
+function setWebDavStatus(text) {
+  if (webdavStatus) {
+    webdavStatus.textContent = text;
+  }
+}
+
+async function loadWebDavSources() {
+  try {
+    const response = await fetch("/api/webdav/sources");
+    if (!response.ok) throw new Error(await extractApiError(response));
+    const payload = await response.json();
+    renderWebDavSourcesList(Array.isArray(payload.items) ? payload.items : []);
+  } catch (error) {
+    setWebDavStatus(`加载来源失败: ${error.message}`);
+  }
+}
+
+function renderWebDavSourcesList(items) {
+  if (!webdavSourcesList) return;
+  webdavSourcesList.replaceChildren();
+
+  if (!items.length) {
+    webdavSourcesEmpty?.classList.remove("hidden");
+    return;
+  }
+
+  webdavSourcesEmpty?.classList.add("hidden");
+
+  items.forEach((source) => {
+    const card = document.createElement("div");
+    card.className = "source-card" + (source.enabled === false ? " is-disabled" : "");
+
+    const header = document.createElement("div");
+    header.className = "source-card-header";
+
+    const title = document.createElement("span");
+    title.className = "source-title";
+    title.textContent = source.name || "(未命名)";
+    header.appendChild(title);
+
+    const statusTag = document.createElement("span");
+    statusTag.className = "source-meta";
+    statusTag.textContent = source.enabled === false ? "[已禁用]" : "[启用]";
+    header.appendChild(statusTag);
+    card.appendChild(header);
+
+    const meta = document.createElement("div");
+    meta.className = "source-meta";
+    meta.textContent = `${source.base_url}${source.remote_path}`;
+    card.appendChild(meta);
+
+    const actions = document.createElement("div");
+    actions.className = "source-actions";
+
+    const editBtn = document.createElement("button");
+    editBtn.type = "button";
+    editBtn.className = "settings-btn";
+    editBtn.textContent = "编辑";
+    editBtn.addEventListener("click", () => {
+      fillWebDavForm(source);
+      settingsPanel?.scrollTo({ top: 0 });
+    });
+    actions.appendChild(editBtn);
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.type = "button";
+    deleteBtn.className = "settings-btn";
+    deleteBtn.textContent = "删除来源";
+    deleteBtn.addEventListener("click", async () => {
+      if (!window.confirm(`确认删除来源: ${source.name}？\n（仅删除配置，不影响 WebDAV 服务器）`)) {
+        return;
+      }
+      try {
+        const resp = await fetch(`/api/webdav/sources/${source.id}`, { method: "DELETE" });
+        if (!resp.ok) {
+          throw new Error(await extractApiError(resp));
+        }
+        setWebDavStatus(`已删除来源: ${source.name}`);
+        if (webdavSourceIdInput?.value === source.id) {
+          resetWebDavForm();
+        }
+        directoryCache.clear();
+        void loadWebDavSources();
+        void loadFiles();
+      } catch (error) {
+        setWebDavStatus(`删除失败: ${error.message}`);
+      }
+    });
+    actions.appendChild(deleteBtn);
+
+    card.appendChild(actions);
+    webdavSourcesList.appendChild(card);
+  });
+}
+
+async function saveWebDavSource() {
+  const form = collectWebDavForm();
+  if (!form.name || !form.base_url || !form.remote_path) {
+    setWebDavStatus("请填写名称、服务器地址和远端目录");
+    return;
+  }
+
+  const sourceId = webdavSourceIdInput?.value || "";
+  const isEdit = !!sourceId;
+  const url = isEdit ? `/api/webdav/sources/${sourceId}` : "/api/webdav/sources";
+  const method = isEdit ? "PUT" : "POST";
+
+  setWebDavStatus(isEdit ? "正在更新来源..." : "正在创建来源...");
+  try {
+    const response = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form),
+    });
+
+    if (!response.ok) {
+      throw new Error(await extractApiError(response));
+    }
+
+    setWebDavStatus(isEdit ? "来源已更新" : "来源已创建");
+    resetWebDavForm();
+    directoryCache.clear();
+    void loadWebDavSources();
+    void loadFiles();
+  } catch (error) {
+    setWebDavStatus(`保存失败: ${error.message}`);
+  }
+}
+
+async function testWebDavSource() {
+  const form = collectWebDavForm();
+  if (!form.base_url || !form.username || !form.password || !form.remote_path) {
+    setWebDavStatus("测试连接前请填写服务器地址、用户名、密码和远端目录");
+    return;
+  }
+
+  setWebDavStatus("正在测试连接...");
+  try {
+    const response = await fetch("/api/webdav/sources/test", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        base_url: form.base_url,
+        username: form.username,
+        password: form.password,
+        remote_path: form.remote_path,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(await extractApiError(response));
+    }
+
+    const payload = await response.json();
+    const count = Number(payload.entry_count) || 0;
+    setWebDavStatus(`连接成功，目录可访问（检测到 ${count} 项）`);
+  } catch (error) {
+    setWebDavStatus(`连接失败：${error.message}`);
+  }
+}
+
+function bindSettingsControls() {
+  if (settingsToggle) {
+    settingsToggle.addEventListener("click", openSettingsPanel);
+  }
+  if (settingsCloseBtn) {
+    settingsCloseBtn.addEventListener("click", closeSettingsPanel);
+  }
+  if (settingsBackdrop) {
+    settingsBackdrop.addEventListener("click", closeSettingsPanel);
+  }
+  if (webdavSaveBtn) {
+    webdavSaveBtn.addEventListener("click", () => void saveWebDavSource());
+  }
+  if (webdavResetBtn) {
+    webdavResetBtn.addEventListener("click", resetWebDavForm);
+  }
+}
+
+
+function closeSettingsPanel() {
+  if (!settingsPanel || !settingsBackdrop) return;
+  settingsPanel.classList.add("hidden");
+  settingsPanel.setAttribute("aria-hidden", "true");
+  settingsBackdrop.classList.add("hidden");
+  if (settingsToggle) settingsToggle.setAttribute("aria-expanded", "false");
+}
+
+function resetWebDavForm() {
+  if (webdavSourceIdInput) webdavSourceIdInput.value = "";
+  if (webdavNameInput) webdavNameInput.value = "";
+  if (webdavBaseUrlInput) webdavBaseUrlInput.value = "";
+  if (webdavUsernameInput) webdavUsernameInput.value = "";
+  if (webdavPasswordInput) webdavPasswordInput.value = "";
+  if (webdavRemotePathInput) webdavRemotePathInput.value = "";
+  if (webdavEnabledInput) webdavEnabledInput.checked = true;
+}
+
+function fillWebDavForm(source) {
+  if (webdavSourceIdInput) webdavSourceIdInput.value = source.id || "";
+  if (webdavNameInput) webdavNameInput.value = source.name || "";
+  if (webdavBaseUrlInput) webdavBaseUrlInput.value = source.base_url || "";
+  if (webdavUsernameInput) webdavUsernameInput.value = source.username || "";
+  if (webdavPasswordInput) webdavPasswordInput.value = source.password || "";
+  if (webdavRemotePathInput) webdavRemotePathInput.value = source.remote_path || "";
+  if (webdavEnabledInput) webdavEnabledInput.checked = source.enabled !== false;
+}
+
+function collectWebDavForm() {
+  return {
+    name: (webdavNameInput?.value || "").trim(),
+    base_url: (webdavBaseUrlInput?.value || "").trim(),
+    username: (webdavUsernameInput?.value || "").trim(),
+    password: webdavPasswordInput?.value || "",
+    remote_path: (webdavRemotePathInput?.value || "").trim(),
+    enabled: webdavEnabledInput?.checked !== false,
+  };
+}
+
+function setWebDavStatus(text) {
+  if (webdavStatus) webdavStatus.textContent = text;
+}
+
+async function loadWebDavSources() {
+  try {
+    const response = await fetch("/api/webdav/sources");
+    if (!response.ok) throw new Error(await extractApiError(response));
+    const payload = await response.json();
+    const items = Array.isArray(payload.items) ? payload.items : [];
+    renderWebDavSourcesList(items);
+  } catch (error) {
+    setWebDavStatus(`加载来源失败: ${error.message}`);
+  }
+}
+
+function renderWebDavSourcesList(items) {
+  if (!webdavSourcesList) return;
+  webdavSourcesList.replaceChildren();
+
+  if (!items.length) {
+    if (webdavSourcesEmpty) webdavSourcesEmpty.classList.remove("hidden");
+    return;
+  }
+
+  if (webdavSourcesEmpty) webdavSourcesEmpty.classList.add("hidden");
+
+  items.forEach((source) => {
+    const card = document.createElement("div");
+    card.className = "source-card" + (source.enabled === false ? " is-disabled" : "");
+
+    const header = document.createElement("div");
+    header.className = "source-card-header";
+
+    const title = document.createElement("span");
+    title.className = "source-title";
+    title.textContent = source.name || "(未命名)";
+    header.appendChild(title);
+
+    const statusTag = document.createElement("span");
+    statusTag.className = "source-meta";
+    statusTag.textContent = source.enabled === false ? "[已禁用]" : "[启用]";
+    header.appendChild(statusTag);
+    card.appendChild(header);
+
+    const meta = document.createElement("div");
+    meta.className = "source-meta";
+    meta.textContent = `${source.base_url}${source.remote_path}`;
+    card.appendChild(meta);
+
+    const actions = document.createElement("div");
+    actions.className = "source-actions";
+
+    const editBtn = document.createElement("button");
+    editBtn.type = "button";
+    editBtn.className = "settings-btn";
+    editBtn.textContent = "编辑";
+    editBtn.addEventListener("click", () => {
+      fillWebDavForm(source);
+      settingsPanel?.scrollTo({ top: 0 });
+    });
+    actions.appendChild(editBtn);
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.type = "button";
+    deleteBtn.className = "settings-btn";
+    deleteBtn.textContent = "删除来源";
+    deleteBtn.addEventListener("click", async () => {
+      if (!window.confirm(`确认删除来源: ${source.name}？\n（仅删除配置，不影响 WebDAV 服务器上的文件）`)) return;
+      try {
+        const resp = await fetch(`/api/webdav/sources/${source.id}`, { method: "DELETE" });
+        if (!resp.ok) {
+          throw new Error(await extractApiError(resp));
+        }
+        setWebDavStatus(`已删除来源: ${source.name}`);
+        if (webdavSourceIdInput?.value === source.id) resetWebDavForm();
+        directoryCache.clear();
+        void loadWebDavSources();
+        void loadFiles();
+      } catch (error) {
+        setWebDavStatus(`删除失败: ${error.message}`);
+      }
+    });
+    actions.appendChild(deleteBtn);
+
+    card.appendChild(actions);
+    webdavSourcesList.appendChild(card);
+  });
+}
+
+async function saveWebDavSource() {
+  const form = collectWebDavForm();
+  if (!form.name || !form.base_url || !form.remote_path) {
+    setWebDavStatus("请填写名称、服务器地址和远端目录");
+    return;
+  }
+
+  const sourceId = webdavSourceIdInput?.value || "";
+  const isEdit = !!sourceId;
+  const url = isEdit ? `/api/webdav/sources/${sourceId}` : "/api/webdav/sources";
+  const method = isEdit ? "PUT" : "POST";
+
+  setWebDavStatus(isEdit ? "正在更新来源..." : "正在创建来源...");
+  try {
+    const response = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form),
+    });
+
+    if (!response.ok) {
+      throw new Error(await extractApiError(response));
+    }
+
+    setWebDavStatus(isEdit ? "来源已更新" : "来源已创建");
+    resetWebDavForm();
+    directoryCache.clear();
+    void loadWebDavSources();
+    void loadFiles();
+  } catch (error) {
+    setWebDavStatus(`保存失败: ${error.message}`);
+  }
+}
+
+function bindSettingsControls() {
+  if (settingsToggle) settingsToggle.addEventListener("click", openSettingsPanel);
+  if (settingsCloseBtn) settingsCloseBtn.addEventListener("click", closeSettingsPanel);
+  if (settingsBackdrop) settingsBackdrop.addEventListener("click", closeSettingsPanel);
+  if (webdavSaveBtn) webdavSaveBtn.addEventListener("click", () => void saveWebDavSource());
+  if (webdavResetBtn) webdavResetBtn.addEventListener("click", resetWebDavForm);
+  if (webdavTestBtn) webdavTestBtn.addEventListener("click", () => void testWebDavSource());
+}
+
+// ---------------------------------------------------------------------------
+// Directory delete support
+// ---------------------------------------------------------------------------
+
+function addDirectoryDeleteButton(summary, node) {
+  if (isWebDavSourceRoot(node.path)) return; // no delete button on WebDAV source root
+
+  const deleteBtn = document.createElement("button");
+  deleteBtn.type = "button";
+  deleteBtn.className = "delete-button dir-delete-button";
+  deleteBtn.textContent = "×";
+  deleteBtn.setAttribute("aria-label", `删除目录 ${node.name}`);
+  deleteBtn.title = `删除目录：${node.name}`;
+  deleteBtn.addEventListener("click", async (event) => {
+    event.stopPropagation();
+    const confirmed = window.confirm(
+      `确认删除文件夹: ${node.path} ？\n注意：将递归删除所有子文件和子目录。`
+    );
+    if (!confirmed) return;
+
+    try {
+      const apiPath = isWebDavPath(node.path)
+        ? encodeWebDavPathForApi(node.path)
+        : encodePathForApi(node.path);
+      const response = await fetch(`/api/files/${apiPath}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        let message = "删除失败";
+        try {
+          const payload = await response.json();
+          message = payload.detail || message;
+        } catch (_) {}
+        throw new Error(message);
+      }
+
+      const li = summary.closest(".file-node");
+      if (li) li.remove();
+      if (treeRoot && !treeRoot.querySelector(".file-node")) {
+        showMessage("未找到 .txt / .epub / .pdf 文件");
+      }
+    } catch (error) {
+      showMessage(`删除失败: ${error.message}`);
+    }
+  });
+
+  summary.appendChild(deleteBtn);
+}
+
+// ---------------------------------------------------------------------------
+// Initialization
+// ---------------------------------------------------------------------------
+
 document.addEventListener("DOMContentLoaded", () => {
   initThemeManager();
   bindSearchControls();
+  bindSettingsControls();
+  if (recentReadingClearButton) {
+    recentReadingClearButton.addEventListener("click", async () => {
+      if (!window.confirm("确认清除全部阅读记录？")) {
+        return;
+      }
+      try {
+        const response = await fetch("/api/reading-history", { method: "DELETE" });
+        if (!response.ok) {
+          throw new Error(await extractApiError(response));
+        }
+        void loadRecentHistory();
+      } catch (error) {
+        showMessage(`清除全部阅读记录失败：${error.message}`);
+      }
+    });
+  }
   window.addEventListener("beforeunload", writeShelfState);
   void loadFiles();
+  void loadRecentHistory();
 });

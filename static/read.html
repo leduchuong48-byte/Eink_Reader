@@ -2,8 +2,9 @@
 <html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>E-ink Box Reader</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>E-ink Box Reader 2.0</title>
+    <meta name="author" content="leduchuong" />
     <link rel="manifest" href="/static/manifest.json" />
     <meta name="theme-color" content="#ffffff" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -14,7 +15,19 @@
     <div id="reader-root">
       <div id="reader-stage">
         <pre id="txt-content" class="hidden"></pre>
+        <div id="txt-measure" aria-hidden="true"></div>
         <div id="epub-viewer" class="hidden"></div>
+        <div id="pdf-viewer" class="hidden" aria-label="PDF 阅读器"></div>
+        <div id="reader-status-overlay" class="reader-status-overlay hidden" aria-live="polite">
+          <div id="reader-status-card" class="reader-status-card">
+            <div id="reader-status-title" class="reader-status-title">加载中</div>
+            <div id="reader-status-detail" class="reader-status-detail"></div>
+            <div class="reader-status-actions">
+              <button id="reader-retry-btn" class="settings-btn" type="button">重试</button>
+              <button id="reader-back-btn" class="settings-btn" type="button">返回书架</button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <aside id="toc-panel" class="hidden" aria-hidden="true">
@@ -48,6 +61,12 @@
           <button id="layout-padding-inc" class="settings-btn" type="button">+</button>
         </div>
         <div class="settings-row">
+          <span class="settings-label">下界限</span>
+          <button id="layout-bottom-inset-dec" class="settings-btn" type="button">-</button>
+          <span id="layout-bottom-inset-value" class="settings-value"></span>
+          <button id="layout-bottom-inset-inc" class="settings-btn" type="button">+</button>
+        </div>
+        <div class="settings-row">
           <span class="settings-label">对齐</span>
           <button id="layout-align-justify" class="settings-btn" type="button">两端</button>
           <button id="layout-align-left" class="settings-btn" type="button">左对齐</button>
@@ -67,14 +86,36 @@
       <div id="reader-info">
         <span id="reader-info-text"></span>
         <div id="reader-info-controls">
+          <button id="page-prev-btn" class="theme-toggle-btn hidden" type="button">上一页</button>
           <span id="reader-progress">--</span>
+          <button id="pdf-zoom-out" class="theme-toggle-btn hidden" type="button">缩小</button>
+          <span id="pdf-zoom-value" class="settings-value hidden">100%</span>
+          <button id="pdf-zoom-in" class="theme-toggle-btn hidden" type="button">放大</button>
+          <button id="pdf-fit-width" class="theme-toggle-btn hidden" type="button">适配宽</button>
+          <button id="pdf-fit-height" class="theme-toggle-btn hidden" type="button">适配高</button>
+          <input id="pdf-page-input" class="hidden" type="number" min="1" step="1" inputmode="numeric" />
+          <button id="pdf-page-go" class="theme-toggle-btn hidden" type="button">跳转</button>
+          <button id="page-next-btn" class="theme-toggle-btn hidden" type="button">下一页</button>
           <button id="back-to-shelf-btn" class="theme-toggle-btn" type="button">返回书架</button>
           <button id="toc-toggle" class="theme-toggle-btn" type="button">目录</button>
+          <button id="settings-toggle" class="theme-toggle-btn" type="button">设置</button>
           <button id="theme-toggle" class="theme-toggle-btn" type="button">切换模式</button>
         </div>
       </div>
+
+      <div id="theme-modal" class="reader-status-overlay hidden" aria-hidden="true">
+        <div class="reader-status-card" role="dialog" aria-modal="true" aria-label="选择阅读模式">
+          <div class="reader-status-title">选择阅读模式</div>
+          <div id="theme-modal-options" class="reader-status-actions"></div>
+          <div class="reader-status-actions">
+            <button id="theme-modal-close" class="settings-btn" type="button">取消</button>
+          </div>
+        </div>
+      </div>
     </div>
+    <script src="/static/js/jszip.min.js"></script>
     <script src="/static/js/epub.min.js"></script>
+    <script src="/static/js/pdf.min.js"></script>
     <script src="/static/js/reader.js"></script>
     <div id="eink-flash-overlay" class="hidden"></div>
   </body>
